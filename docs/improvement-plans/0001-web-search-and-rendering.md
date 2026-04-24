@@ -108,10 +108,23 @@ Rejected: hook wrapper intercepting webFetch — harder to debug, doesn't improv
 - Playwright MCP: `mcp__playwright__browser_navigate` and related tools
 - Chrome DevTools MCP: `mcp__chrome-devtools__*`
 
-**Needs action (Phase 2 enhancements only):**
+**API keys — all confirmed present in `~/creds.zsh`:**
 
-- Perplexity: `PERPLEXITY_API_KEY` — needed only if adding Perplexity MCP
-- Tavily: API key — needed only if adding Tavily MCP
+| Provider | Env var | Dashboard |
+| --- | --- | --- |
+| Exa | `EXA_API_KEY` ✓ | [dashboard.exa.ai](https://dashboard.exa.ai/api-keys) |
+| Context7 | `CONTEXT7_API_KEY` ✓ | [context7.com/settings](https://context7.com/settings) |
+| Ref | `REF_API_KEY` ✓ | [ref.tools/settings](https://ref.tools/settings) |
+| Perplexity | `PERPLEXITY_API_KEY` ✓ | [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api) |
+| Tavily | `TAVILY_API_KEY` ✓ | [app.tavily.com](https://app.tavily.com/home) |
+| Brave Search | `BRAVE_API_KEY` ✓ | [api-dashboard.search.brave.com](https://api-dashboard.search.brave.com/app/subscriptions) |
+| Firecrawl | `FIRECRAWL_API_KEY` ✓ | [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys) |
+| DeepWiki | — no key required ✓ | — |
+
+**Needs action:**
+
+- Install MCP server configs for Tavily, Perplexity, Brave, Firecrawl (see Artifact 3)
+- Install provider skills for routing enrichment (see Artifacts 4–8)
 
 ## Implementation
 
@@ -120,10 +133,22 @@ Rejected: hook wrapper intercepting webFetch — harder to debug, doesn't improv
 1. Write the `web-research` skill to `~/.claude/skills/web-research.md` (full content in Artifacts)
 2. Append the routing directive block to `~/.claude/CLAUDE.md` (full content in Artifacts)
 
-### Phase 2 — Optional provider additions
+### Phase 2 — Provider skills
 
-1. If `PERPLEXITY_API_KEY` is available: add Perplexity MCP; update the routing table in the skill
-2. If Tavily API key is available: add Tavily MCP; update the routing table in the skill
+1. Install Tavily CLI skill to `~/.claude/skills/tavily-cli.md` (Artifact 4)
+2. Install Context7 find-docs skill to `~/.claude/skills/context7-find-docs.md` (Artifact 5)
+3. Install Context7 MCP skill to `~/.claude/skills/context7-mcp.md` (Artifact 6)
+4. Install Exa research skill to `~/.claude/skills/exa-research.md` (Artifact 7)
+5. Install Brave web-search skill to `~/.claude/skills/brave-web-search.md` (Artifact 8)
+
+### Phase 3 — MCP server connections
+
+All API keys confirmed in `~/creds.zsh`. Merge Artifact 3 `mcpServers` block into `~/.claude/settings.json`.
+
+1. Read current `~/.claude/settings.json`
+2. Add each server entry from Artifact 3 under `mcpServers` — do not overwrite existing entries
+3. Verify new connections appear in deferred tools: `mcp__tavily__*`, `mcp__perplexity-sonar__*`, `mcp__brave-search__*`, `mcp__firecrawl__*`
+4. Re-run validation suite (AC1–AC6) with all providers connected
 
 ## Artifacts
 
@@ -236,6 +261,329 @@ the complete routing logic for selecting the right tool automatically. Never def
 to `webSearch` or `webFetch` without consulting the routing rules first.
 ```
 
+### Artifact 3
+
+- type: mcp-config
+- destination: `~/.claude/settings.json` (merge `mcpServers` — do not overwrite the full file)
+
+> **implement-plan note**: Use `jq -s '.[0] * .[1]' ~/.claude/settings.json - <<'JSON' | sponge ~/.claude/settings.json` to merge, or manually add each entry under `mcpServers`.
+
+```json
+{
+  "mcpServers": {
+    "tavily": {
+      "type": "http",
+      "url": "https://mcp.tavily.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${TAVILY_API_KEY}"
+      }
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp",
+      "headers": {
+        "x-api-key": "${EXA_API_KEY}"
+      }
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CONTEXT7_API_KEY}"
+      }
+    },
+    "ref": {
+      "type": "http",
+      "url": "https://api.ref.tools/mcp",
+      "headers": {
+        "Authorization": "Bearer ${REF_API_KEY}"
+      }
+    },
+    "deepwiki": {
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/"
+    },
+    "perplexity-sonar": {
+      "command": "npx",
+      "args": ["-y", "@felores/perplexity-sonar-mcp"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}"
+      }
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@brave/brave-search-mcp-server", "--transport", "http"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+### Artifact 4
+
+- type: skill
+- destination: `~/.claude/skills/tavily-cli.md`
+- source: <https://github.com/tavily-ai/skills/blob/main/skills/tavily-cli/SKILL.md>
+
+````markdown
+---
+name: tavily-cli
+description: |
+  Web search, content extraction, crawling, and deep research via the Tavily CLI. Use this skill whenever
+  the user wants to search the web, find articles, research a topic, look something up online, extract
+  content from a URL, grab text from a webpage, crawl documentation, download a site's pages, discover
+  URLs on a domain, or conduct in-depth research with citations. Also use when they say "fetch this page",
+  "pull the content from", "get the page at https://", "find me articles about", or reference extracting
+  data from external websites. Do NOT trigger for local file operations, git commands, deployments, or
+  code editing tasks.
+compatibility: Requires tavily-cli (`curl -fsSL https://cli.tavily.com/install.sh | bash`) and TAVILY_API_KEY.
+allowed-tools: Bash(tvly *)
+---
+
+# Tavily CLI
+
+Web search, content extraction, site crawling, URL discovery, and deep research. Returns JSON optimized
+for LLM consumption.
+
+## Prerequisites
+
+Check: `tvly --status`. If not ready:
+
+```bash
+curl -fsSL https://cli.tavily.com/install.sh | bash
+tvly login --api-key "${TAVILY_API_KEY}"
+```
+
+## Escalation Workflow
+
+Start simple, escalate when needed:
+
+| Need | Command | When |
+|------|---------|------|
+| Find pages on a topic | `tvly search` | No specific URL yet |
+| Get a page's content | `tvly extract` | Have a URL |
+| Find URLs within a site | `tvly map` | Need to locate a subpage |
+| Bulk extract a site section | `tvly crawl` | Need many pages (e.g., all /docs/) |
+| Deep research with citations | `tvly research` | Need multi-source synthesis |
+
+## Output
+
+All commands support `--json` for machine-readable output and `-o` to save to a file:
+
+```bash
+tvly search "react hooks" --json -o results.json
+tvly extract "https://example.com/docs" -o docs.md
+tvly crawl "https://docs.example.com" --output-dir ./docs/
+```
+
+## Tips
+
+- Always quote URLs — shell interprets `?` and `&` as special characters
+- Use `--json` in agentic workflows
+- Read from stdin: `echo "query" | tvly search -`
+- Exit codes: 0=success, 2=bad input, 3=auth error, 4=API error
+````
+
+### Artifact 5
+
+- type: skill
+- destination: `~/.claude/skills/context7-find-docs.md`
+- source: <https://github.com/upstash/context7/blob/master/skills/find-docs/SKILL.md>
+
+````markdown
+---
+name: find-docs
+description: >-
+  Retrieves up-to-date documentation, API references, and code examples for any developer technology.
+  Use this skill whenever the user asks about a specific library, framework, SDK, CLI tool, or cloud
+  service — even for well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring
+  Boot. Your training data may not reflect recent API changes or version updates.
+
+  Always use for: API syntax questions, configuration options, version migration issues, "how do I"
+  questions mentioning a library name, debugging involving library-specific behavior, setup instructions,
+  and CLI tool usage. Prefer this over web search for library documentation and API details.
+---
+
+# Documentation Lookup
+
+Two-step process: resolve the library name to an ID, then query docs with that ID.
+
+## Step 1: Resolve a Library
+
+Call `mcp__context7__resolve-library-id` with `libraryName` and `query` (the user's full question).
+
+Result fields: Library ID (`/org/project`), Name, Description, Code Snippets, Source Reputation,
+Benchmark Score, Versions.
+
+Selection: name similarity → description relevance → code snippet count → source reputation →
+benchmark score. For version-specific queries use version IDs (e.g., `/vercel/next.js/v14.3.0`).
+
+## Step 2: Query Documentation
+
+Call `mcp__context7__query-docs` with `libraryId` and `query`.
+
+Writing good queries:
+- Good: `"How to set up authentication with JWT in Express.js"`
+- Bad: `"auth"`, `"hooks"` (too vague — returns generic results)
+
+Use the user's full question as the query. Max 3 attempts per question.
+
+## Fallback
+
+If quota error ("Monthly quota reached"): tell the user, suggest setting `CONTEXT7_API_KEY`,
+do not silently fall back to training data.
+````
+
+### Artifact 6
+
+- type: skill
+- destination: `~/.claude/skills/context7-mcp.md`
+- source: <https://github.com/upstash/context7/blob/master/skills/context7-mcp/SKILL.md>
+
+````markdown
+---
+name: context7-mcp
+description: >-
+  Use when the user asks about libraries, frameworks, API references, or needs code examples.
+  Activates for setup questions, code generation involving libraries, or mentions of specific
+  frameworks like React, Vue, Next.js, Prisma, Supabase, etc.
+---
+
+When the user asks about libraries or needs code examples, use Context7 to fetch current
+documentation instead of relying on training data.
+
+## Workflow
+
+1. Call `mcp__context7__resolve-library-id` with `libraryName` and the user's full question as `query`
+2. Select best match: exact name match → higher benchmark score → version-specific ID if version mentioned
+3. Call `mcp__context7__query-docs` with `libraryId` and `query`
+4. Answer using the fetched docs; include code examples; cite library version when relevant
+
+## Guidelines
+
+- Pass the user's full question as the query — improves result relevance significantly
+- For version mentions ("Next.js 15", "React 19"), prefer version-specific library IDs
+- When multiple matches exist, prefer official/primary packages over community forks
+````
+
+### Artifact 7
+
+- type: skill
+- destination: `~/.claude/skills/exa-research.md`
+- source: <https://github.com/exa-labs/exa-mcp-server/blob/main/skills/search/SKILL.md>
+
+````markdown
+---
+name: exa-research
+description: >-
+  Deep research powered by Exa. Use for lead generation, literature reviews, deep dives, competitive
+  analysis, or any query where one search falls short — including phrases like "research this",
+  "find everything about", "find me all", or "deep dive on".
+---
+
+# Exa Research Orchestrator
+
+Understand the query, plan the work, dispatch the right Exa tool, compile and deliver results.
+
+## Tool Selection
+
+| Query type | Tool |
+|------------|------|
+| General web research | `mcp__exa__web_search_exa` |
+| Code examples in OSS | `mcp__exa__get_code_context_exa` |
+| Company / product info | `mcp__exa__company_research_exa` |
+| Deep multi-source research | `mcp__exa__deep_researcher_start` + poll `mcp__exa__deep_researcher_check` |
+| LinkedIn / people research | `mcp__exa__linkedin_search_exa` |
+
+## Date Handling
+
+For recency queries ("last month", "this year"), calculate the actual date before searching:
+
+```bash
+date -u +%Y-%m-%dT%H:%M:%SZ
+```
+
+Use this as `startPublishedDate`.
+
+## Source Quality
+
+- Prefer `.edu`, `.gov`, and primary sources
+- Prefer recent publications; check publish date
+- Discard sources with relevance score < 0.5
+- Never fabricate citations — only cite URLs actually returned by the tool
+- Never retry the same tool + query more than twice
+
+## Citation Format
+
+```
+[Title](URL) — one-line summary of key finding
+```
+
+Include at least 3 citations in any research response.
+````
+
+### Artifact 8
+
+- type: skill
+- destination: `~/.claude/skills/brave-web-search.md`
+- source: <https://github.com/brave/brave-search-skills/blob/main/skills/web-search/SKILL.md>
+
+````markdown
+---
+name: brave-web-search
+description: >-
+  Web search via Brave Search's independent index (30B+ pages). Use when Exa/Tavily are unavailable,
+  for privacy-first search with no Google/Bing dependency, or when news and time-sensitive results are
+  needed. Requires BRAVE_API_KEY. If Brave MCP is connected, use MCP tool; otherwise call the REST API.
+---
+
+# Brave Web Search
+
+**API key**: `BRAVE_API_KEY` env var — [api-dashboard.search.brave.com](https://api-dashboard.search.brave.com/app/subscriptions/subscribe)
+
+## If Brave MCP is connected
+
+Use `mcp__brave-search__web_search` (or similar — check deferred tools for exact name).
+
+## REST API fallback
+
+```bash
+curl -s "https://api.search.brave.com/res/v1/web/search" \
+  -H "Accept: application/json" \
+  -H "X-Subscription-Token: ${BRAVE_API_KEY}" \
+  -G \
+  --data-urlencode "q=YOUR_QUERY" \
+  --data-urlencode "count=10" \
+  --data-urlencode "freshness=pm"
+```
+
+## Key Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `q` | Search query (max 400 chars) | required |
+| `count` | Results per page (1–20) | 10 |
+| `freshness` | `pd` (day), `pw` (week), `pm` (month) | none |
+| `country` | Country code, e.g. `US` | auto |
+| `safesearch` | `off`, `moderate`, `strict` | moderate |
+
+## When to Use
+
+- Privacy-first search (no Google/Bing dependency)
+- News and time-sensitive queries when Tavily is unavailable
+- Independent index with broad coverage
+- Cost-effective: ~$0.10/100 queries
+````
+
 ## Agent-Specific Considerations
 
 - **Silent failures**: If a preferred tool returns empty/error, escalate — never silently use an inferior result. The failure of a tool is not a reason to skip validation of the result.
@@ -269,17 +617,22 @@ Procedure:
 - Review the routing table when a new search or browser MCP is added or removed
 - Re-validate the SPA detection heuristic if webFetch response format changes
 - Re-run validation suite (AC1–AC6) after any changes to `~/.claude/CLAUDE.md`
-- Check quarterly whether Perplexity or Tavily should be added as connected providers
+- Review provider skill files quarterly against upstream repos (Tavily, Exa, Context7, Brave) for updates
 
 ## Open Questions
 
-- Q: Should Perplexity Sonar be added as a connected MCP now? Resolved by: checking whether `PERPLEXITY_API_KEY` is available in the environment.
-- Q: Is Tavily already connected under a different MCP name? Resolved by: checking the active deferred tools list for Tavily-related tool names.
+- Q: Should Perplexity Sonar be added as a connected MCP now? **Resolved: Yes.** `PERPLEXITY_API_KEY` confirmed in `~/creds.zsh`. MCP config added in Artifact 3.
+- Q: Is Tavily already connected under a different MCP name? **Resolved: No.** Not in the active deferred tools list. `TAVILY_API_KEY` confirmed available. MCP config added in Artifact 3.
+- Q: Should Brave Search be added? **Resolved: Yes.** `BRAVE_API_KEY` confirmed available. MCP config added in Artifact 3.
+- Q: Which provider skills to install alongside web-research? **Resolved.** Tavily CLI, Context7 find-docs, Context7 MCP, Exa research, Brave web-search added as Artifacts 4–8.
 
 ## References
 
-- Exa pricing and tool docs: https://exa.ai/pricing
-- Context7 GitHub: https://github.com/upstash/context7
-- Ref tool docs: https://ref.tools/
-- Perplexity Sonar API: https://docs.perplexity.ai/docs/sonar/models
-- Exa vs Tavily comparison: https://exa.ai/versus/tavily
+- Exa pricing and tool docs: [exa.ai/pricing](https://exa.ai/pricing)
+- Context7 GitHub: [upstash/context7](https://github.com/upstash/context7)
+- Ref tool docs: [ref.tools](https://ref.tools/)
+- Perplexity Sonar API: [docs.perplexity.ai](https://docs.perplexity.ai/docs/sonar/models)
+- Exa vs Tavily comparison: [exa.ai/versus/tavily](https://exa.ai/versus/tavily)
+- Tavily skills repo: [tavily-ai/skills](https://github.com/tavily-ai/skills)
+- Brave Search skills repo: [brave/brave-search-skills](https://github.com/brave/brave-search-skills)
+- Exa MCP server skills: [exa-labs/exa-mcp-server](https://github.com/exa-labs/exa-mcp-server/tree/main/skills/search)

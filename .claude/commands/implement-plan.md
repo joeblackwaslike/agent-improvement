@@ -49,8 +49,12 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
       - Paths starting with `plugin:{name}/` → `~/.claude/plugins/{name}/`
       - Relative paths → relative to the repo root
 
-   c. For `type: claude-md-addition` — append the content to the destination file.
-      For all other types — write the content as a new file at the destination.
+   c. Install by type:
+      - `claude-md-addition` — append the content block to the destination file (check for duplicate heading first)
+      - `mcp-config` — merge the artifact's JSON into the destination file under the `mcpServers` key.
+        Command: `jq -s '.[0] * .[1]' {destination} <(echo '{artifact-json}') | sponge {destination}`
+        If `sponge` is unavailable: write to a temp file then `mv`. Never overwrite the full settings file.
+      - All other types — write the content as a new file at the destination.
       Create parent directories as needed (`mkdir -p`).
 
    d. Log each install: `✓ Installed {type} → {resolved-destination}`
