@@ -31,7 +31,7 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
    - `updated`: same as `created`
    - Leave all other frontmatter fields at their template defaults for the user to fill in.
 
-   The `## Variables:` section (between the frontmatter and `## Summary`) holds plan-specific
+   The `## Variables` section (between the frontmatter and `## Summary`) holds plan-specific
    named values that `implement-plan` substitutes into artifact content at install time.
    Ask the user if there are any environment variables, file paths, or credentials the plan
    needs — populate those as `KEY: value` entries. Leave the HTML comment placeholder if none.
@@ -74,7 +74,10 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
 6. **Remind**
 
    - Status stays `draft` until the user reviews and sets it to `review`, then `approved`
-   - Update the `updated` date whenever the file changes
+   - Version starts at `0.1.0` (draft). Bump to `1.0.0` on first implementation. After that:
+     patch = fixes/clarifications, minor = new content/ACs, major = decision change
+   - Update the `updated` date and `version` together whenever the file changes
+   - GH issues are never closed — AIPs are living documents that evolve as the AI space changes
    - Add area and priority labels to the GH issue once frontmatter is filled in:
 
    ```sh

@@ -11,6 +11,8 @@ effort: medium
 # effort options: small | medium | large | xlarge
 impact: medium
 # impact options: low | medium | high
+version: "0.1.0"
+# version: semver — 0.x.0 = draft, 1.0.0 = first implementation, minor = new content, major = decision change
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 tags: []
@@ -20,7 +22,7 @@ related: []
 # related: list of related plan nums, e.g. ["0004"]
 ---
 
-## Variables:
+## Variables
 
 <!-- Plan-specific named values. Referenced in artifact content as ${VARIABLE_NAME}.
      implement-plan substitutes these before writing each artifact.

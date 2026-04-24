@@ -6,6 +6,7 @@ status: completed
 priority: high
 effort: medium
 impact: high
+version: "1.0.0"
 created: 2026-04-23
 updated: 2026-04-24
 tags: [meta, aip, template, registry, commands, github]
@@ -13,7 +14,7 @@ depends-on: []
 related: ["0002", "0003"]
 ---
 
-## Variables:
+## Variables
 
 <!-- None required — this plan documents the system itself. -->
 
@@ -21,15 +22,11 @@ related: ["0002", "0003"]
 
 ## Summary
 
-Agents and users can now create, track, and implement structured improvement plans (AIPs) using
-a numbered registry, a canonical plan template, and two slash commands (`/new-plan`, `/implement-plan`).
-This replaces ad-hoc planning scattered across conversation context with a durable, version-controlled system.
+Agents and users can now create, track, and implement structured improvement plans (AIPs) using a numbered registry, a canonical plan template, and two slash commands (`/new-plan`, `/implement-plan`). This replaces ad-hoc planning scattered across conversation context with a durable, version-controlled system.
 
 ## Problem
 
-Without a structured system, improvement ideas were proposed in conversation and lost after context
-compaction. There was no canonical format for capturing decisions, no stable numbering scheme, and
-no automated way to install plan artifacts.
+Without a structured system, improvement ideas were proposed in conversation and lost after context compaction. There was no canonical format for capturing decisions, no stable numbering scheme, and no automated way to install plan artifacts.
 
 - Given a good idea surfaced in chat → Expected: durable record with traceability → Actual: lost after session ends
 - Given a plan with multiple tool options → Expected: explicit decision with rationale → Actual: option chosen silently, re-debated next session
@@ -45,10 +42,7 @@ no automated way to install plan artifacts.
 
 ## Decision
 
-GitHub Issues in a dedicated `joeblackwaslike/AIPs` repo serve as the canonical number registry —
-issue #N = AIP `{N:04d}`. Plan file content lives in `agent-improvement/docs/improvement-plans/`.
-Beads is used for implementation sub-tasks, not AIP tracking. External tools rejected as unnecessary
-dependencies.
+GitHub Issues in a dedicated `joeblackwaslike/AIPs` repo serve as the canonical number registry — issue #N = AIP `{N:04d}`. Plan file content lives in `agent-improvement/docs/improvement-plans/`. Beads is used for implementation sub-tasks, not AIP tracking. External tools rejected as unnecessary dependencies.
 
 ## Acceptance Criteria
 
@@ -75,7 +69,7 @@ dependencies.
 ### Phase 1 — Template and commands
 
 1. Create `docs/improvement-plans/template.md` with frontmatter schema and all 14 section stubs
-2. Add `## Variables:` section between frontmatter and first heading
+2. Add `## Variables` section between frontmatter and first heading
 3. Create `.claude/commands/new-plan.md` with YAML frontmatter for slash command registration
 4. Create `.claude/commands/implement-plan.md` with YAML frontmatter
 

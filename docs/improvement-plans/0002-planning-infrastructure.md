@@ -6,6 +6,7 @@ status: completed
 priority: high
 effort: medium
 impact: high
+version: "1.0.0"
 created: 2026-04-23
 updated: 2026-04-24
 tags: [meta, planning, infrastructure, commands, github]
@@ -13,7 +14,7 @@ depends-on: []
 related: ["0001", "0003"]
 ---
 
-## Variables:
+## Variables
 
 REPO: joeblackwaslike/agent-improvement
 
@@ -21,22 +22,15 @@ REPO: joeblackwaslike/agent-improvement
 
 ## Summary
 
-A structured system for tracking, designing, and implementing agent workflow improvements. Agents and
-humans share a common format — numbered plan files with embedded artifacts — so improvements can be
-proposed, reviewed, and installed reproducibly across sessions.
+A structured system for tracking, designing, and implementing agent workflow improvements. Agents and humans share a common format — numbered plan files with embedded artifacts — so improvements can be proposed, reviewed, and installed reproducibly across sessions.
 
 ## Problem
 
-Agent improvements (better search routing, richer memory, faster tools) were being applied ad hoc —
-discussed in a session, implemented inline, then forgotten. No audit trail. No rollback procedure.
-No way to queue work across sessions or share rationale with future agents.
+Agent improvements (better search routing, richer memory, faster tools) were being applied ad hoc — discussed in a session, implemented inline, then forgotten. No audit trail. No rollback procedure. No way to queue work across sessions or share rationale with future agents.
 
-- Given: a new session opens after improvements were made → Expected: agent picks up where left off →
-  Actual: agent has no knowledge of prior decisions, re-debates resolved questions, repeats mistakes
-- Given: a skill or CLAUDE.md block needs reverting → Expected: clear rollback procedure →
-  Actual: no record of what was installed or why
-- Given: multiple improvements are in flight → Expected: visible priority queue →
-  Actual: improvements exist only in conversation history
+- Given: a new session opens after improvements were made → Expected: agent picks up where left off → Actual: agent has no knowledge of prior decisions, re-debates resolved questions, repeats mistakes
+- Given: a skill or CLAUDE.md block needs reverting → Expected: clear rollback procedure → Actual: no record of what was installed or why
+- Given: multiple improvements are in flight → Expected: visible priority queue → Actual: improvements exist only in conversation history
 
 ## Options
 
@@ -49,10 +43,7 @@ No way to queue work across sessions or share rationale with future agents.
 
 ## Decision
 
-**Plan files + commands.** The `{NNNN}-{slug}.md` format in `docs/improvement-plans/` is the
-canonical record. Each plan is self-contained: it describes the problem, documents the decision,
-and embeds the exact artifact content that `implement-plan` installs. GitHub issues mirror plan
-status for visibility. Beads tracks in-session sub-tasks.
+**Plan files + commands.** The `{NNNN}-{slug}.md` format in `docs/improvement-plans/` is the canonical record. Each plan is self-contained: it describes the problem, documents the decision, and embeds the exact artifact content that `implement-plan` installs. GitHub issues mirror plan status for visibility. Beads tracks in-session sub-tasks.
 
 Rejected: plain docs — no install automation, no schema enforcement.
 Rejected: GH issues only — no way to embed full skill/config content.

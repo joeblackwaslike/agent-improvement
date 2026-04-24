@@ -6,13 +6,14 @@ status: approved
 priority: high
 effort: small
 impact: high
+version: "1.0.0"
 created: 2026-04-23
-updated: 2026-04-23
+updated: 2026-04-24
 tags: [search, browser, mcp, routing, webfetch]
 depends-on: []
 related: []
 ---
-## Variables:
+## Variables
 
 CREDENTIALS_FILE: ~/creds.zsh
 

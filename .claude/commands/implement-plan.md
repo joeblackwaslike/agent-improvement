@@ -22,7 +22,7 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    Update the frontmatter to `status: approved` when the plan is ready."
 
    Parse the **Variables** section (between the frontmatter `---` and the first `##` heading
-   other than `## Variables:`). Each non-comment line of the form `KEY: value` becomes a
+   other than `## Variables`). Each non-comment line of the form `KEY: value` becomes a
    substitution variable. When installing artifacts (step 5), replace every `${KEY}` in the
    artifact content with its resolved value before writing.
 
@@ -96,19 +96,20 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
 
    - `status: completed`
    - `updated: {today's date in YYYY-MM-DD}`
+   - `version`: bump to the next semver — patch for fixes/clarifications, minor for new content or
+     acceptance criteria, major for a decision change. First implementation always lands at `1.0.0`.
 
-   Sync the GH issue:
+   Sync the GH issue — **do not close it** (AIPs are living documents):
 
    ```sh
-   gh issue edit {number} --add-label "status/completed" --remove-label "status/in-progress"
-   gh issue close {number}
+   gh issue edit {number} --repo joeblackwaslike/AIPs --add-label "status/completed" --remove-label "status/in-progress"
    ```
 
    Stage and commit:
 
    ```sh
    git add docs/improvement-plans/{NNNN}-*.md
-   git commit -m "feat: implement plan {NNNN} — {plan title}"
+   git commit -m "feat: implement plan {NNNN} v{version} — {plan title}"
    git push
    ```
 
