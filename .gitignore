@@ -3,3 +3,12 @@
 .dolt/
 *.db
 .beads-credential-key
+
+# Node
+node_modules/
+
+# Serena working files
+.serena/
+
+# Claude plans (generated, not canonical)
+.claude/plans/

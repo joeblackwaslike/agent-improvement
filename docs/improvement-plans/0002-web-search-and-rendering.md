@@ -1,5 +1,5 @@
 ---
-num: "0001"
+num: "0002"
 title: "Web Research: Expert Search Routing + Rendering Escalation"
 area: search
 status: approved
@@ -11,6 +11,11 @@ updated: 2026-04-23
 tags: [search, browser, mcp, routing, webfetch]
 depends-on: []
 related: []
+---
+## Variables:
+
+CREDENTIALS_FILE: ~/creds.zsh
+
 ---
 
 ## Summary
@@ -108,7 +113,7 @@ Rejected: hook wrapper intercepting webFetch — harder to debug, doesn't improv
 - Playwright MCP: `mcp__playwright__browser_navigate` and related tools
 - Chrome DevTools MCP: `mcp__chrome-devtools__*`
 
-**API keys — all confirmed present in `~/creds.zsh`:**
+**API keys — all confirmed present in CREDENTIALS_FILE:**
 
 | Provider | Env var | Dashboard |
 | --- | --- | --- |
@@ -143,7 +148,7 @@ Rejected: hook wrapper intercepting webFetch — harder to debug, doesn't improv
 
 ### Phase 3 — MCP server connections
 
-All API keys confirmed in `~/creds.zsh`. Merge Artifact 3 `mcpServers` block into `~/.claude/settings.json`.
+All API keys confirmed in CREDENTIALS_FILE. Merge Artifact 3 `mcpServers` block into `~/.claude/settings.json`.
 
 1. Read current `~/.claude/settings.json`
 2. Add each server entry from Artifact 3 under `mcpServers` — do not overwrite existing entries
@@ -621,7 +626,7 @@ Procedure:
 
 ## Open Questions
 
-- Q: Should Perplexity Sonar be added as a connected MCP now? **Resolved: Yes.** `PERPLEXITY_API_KEY` confirmed in `~/creds.zsh`. MCP config added in Artifact 3.
+- Q: Should Perplexity Sonar be added as a connected MCP now? **Resolved: Yes.** `PERPLEXITY_API_KEY` confirmed in CREDENTIALS_FILE. MCP config added in Artifact 3.
 - Q: Is Tavily already connected under a different MCP name? **Resolved: No.** Not in the active deferred tools list. `TAVILY_API_KEY` confirmed available. MCP config added in Artifact 3.
 - Q: Should Brave Search be added? **Resolved: Yes.** `BRAVE_API_KEY` confirmed available. MCP config added in Artifact 3.
 - Q: Which provider skills to install alongside web-research? **Resolved.** Tavily CLI, Context7 find-docs, Context7 MCP, Exa research, Brave web-search added as Artifacts 4–8.

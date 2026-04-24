@@ -1,5 +1,5 @@
 ---
-num: "0000"
+num: "0001"
 title: "Agent Improvement Planning Infrastructure"
 area: tools
 status: completed
@@ -10,7 +10,7 @@ created: 2026-04-23
 updated: 2026-04-24
 tags: [meta, planning, infrastructure, commands, github]
 depends-on: []
-related: ["0001"]
+related: ["0002"]
 ---
 
 ## Variables:
@@ -63,7 +63,7 @@ Rejected: GH issues only — no way to embed full skill/config content.
 - [x] `/new-plan [title]` creates a numbered plan file and a GH issue with `[NNNN]` prefix
 - [x] `/implement-plan NNNN` reads Artifacts, installs each to its destination, runs validation
 - [x] GH repo `joeblackwaslike/agent-improvement` has full label taxonomy (status/*, area/*, priority/*)
-- [x] Plan 0001 is the first real improvement plan, demonstrating the full format
+- [x] Plan 0002 is the first real improvement plan, demonstrating the full format
 
 ## Requirements
 
@@ -93,11 +93,11 @@ Rejected: GH issues only — no way to embed full skill/config content.
 
 1. Verify repo exists: `gh repo view joeblackwaslike/agent-improvement`
 2. Create full label taxonomy via `gh label create`
-3. Create GH issue for plan 0001 to validate the issue format
+3. Create GH issue for plan 0002 to validate the issue format
 
 ### Phase 3 — Validation
 
-1. Author plan 0001 (web search routing) as the canonical first real plan
+1. Author plan 0002 (web search routing) as the canonical first real plan
 2. Confirm `/new-plan` and `/implement-plan` are recognized as slash commands
 
 ## Artifacts
@@ -120,11 +120,11 @@ No artifacts — this plan documents infrastructure that was built directly in-s
 
 ## Validation
 
-- AC1: `ls docs/improvement-plans/` shows `template.md` and `0001-*.md` ✓
+- AC1: `ls docs/improvement-plans/` shows `template.md`, `0001-*.md`, and `0002-*.md` ✓
 - AC2: `ls .claude/commands/` shows `new-plan.md` and `implement-plan.md` with YAML frontmatter ✓
-- AC3: `gh issue list --repo joeblackwaslike/agent-improvement` shows issue `[0001]` ✓
+- AC3: `gh issue list --repo joeblackwaslike/agent-improvement` shows issues `[0001]` and `[0002]` ✓
 - AC4: `gh label list --repo joeblackwaslike/agent-improvement` shows all status/area/priority labels ✓
-- AC5: Plan 0001 exists and is `status: approved` ✓
+- AC5: Plan 0002 exists and is `status: approved` ✓
 
 ## Rollback
 
@@ -147,8 +147,8 @@ Procedure:
 
 - Q: Should project commands require a namespace prefix (e.g. `/project:new-plan`)?
   Resolved by: testing `/new-plan` in the next session after adding YAML frontmatter.
-- Q: Should plan 0000 be reserved permanently as the meta-plan, or is it just the lowest-numbered plan?
-  Resolved by: convention — 0000 is the planning infrastructure meta-plan; real improvements start at 0001.
+- Q: Should plan 0001 be the permanent meta-plan, or is it just the lowest-numbered plan?
+  Resolved by: convention — 0001 is the planning infrastructure meta-plan; real improvements start at 0002.
 
 ## References
 
