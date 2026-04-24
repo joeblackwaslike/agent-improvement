@@ -1,3 +1,10 @@
+---
+argument-hint: "<NNNN>"
+description: Implement an approved agent improvement plan by its 4-digit number
+---
+
+# Implement Plan
+
 Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit plan number, e.g. `0001`)
 
 ## Steps
@@ -25,21 +32,27 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
 3. **Verify requirements**
 
    Read the **Requirements** section. For each item under "Needs action":
+
    - Check whether the requirement is satisfied (MCP connected, env var set, package installed, etc.)
    - If any are unmet, list them clearly and abort: "Requirements not met — resolve these before implementing."
 
 4. **Sync GitHub issue to in-progress**
 
    Find the GH issue for this plan:
-   ```
+
+   ```sh
    gh issue list --repo joeblackwaslike/agent-improvement --search "[{NNNN}]" --json number,title
    ```
+
    If found, add the `status/in-progress` label and remove `status/draft` or `status/approved`:
-   ```
+
+   ```sh
    gh issue edit {number} --add-label "status/in-progress" --remove-label "status/draft" --remove-label "status/approved"
    ```
+
    If no issue exists, create one:
-   ```
+
+   ```sh
    gh issue create --repo joeblackwaslike/agent-improvement \
      --title "[{NNNN}] {plan title}" \
      --body "Plan file: docs/improvement-plans/{NNNN}-{slug}.md" \
@@ -53,16 +66,20 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    a. Parse `type`, `destination`, and `content` (the fenced code block).
 
    b. Resolve the destination path:
+
       - Paths starting with `~/` → expand to the user's home directory
       - Paths starting with `plugin:{name}/` → `~/.claude/plugins/{name}/`
       - Relative paths → relative to the repo root
 
    c. Install by type:
-      - `claude-md-addition` — append the content block to the destination file (check for duplicate heading first)
+
+      - `claude-md-addition` — append the content block to the destination file
+        (check for duplicate heading first)
       - `mcp-config` — merge the artifact's JSON into the destination file under the `mcpServers` key.
         Command: `jq -s '.[0] * .[1]' {destination} <(echo '{artifact-json}') | sponge {destination}`
         If `sponge` is unavailable: write to a temp file then `mv`. Never overwrite the full settings file.
       - All other types — write the content as a new file at the destination.
+
       Create parent directories as needed (`mkdir -p`).
 
    d. Log each install: `✓ Installed {type} → {resolved-destination}`
@@ -76,17 +93,20 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
 7. **Complete**
 
    Update the plan file frontmatter:
+
    - `status: completed`
    - `updated: {today's date in YYYY-MM-DD}`
 
    Sync the GH issue:
-   ```
+
+   ```sh
    gh issue edit {number} --add-label "status/completed" --remove-label "status/in-progress"
    gh issue close {number}
    ```
 
    Stage and commit:
-   ```
+
+   ```sh
    git add docs/improvement-plans/{NNNN}-*.md
    git commit -m "feat: implement plan {NNNN} — {plan title}"
    git push
