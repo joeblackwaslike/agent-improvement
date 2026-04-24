@@ -12,6 +12,7 @@ updated: 2026-04-24
 tags: [search, browser, mcp, routing, webfetch]
 depends-on: []
 related: []
+agents: [claude-code, codex, opencode, gemini-cli]
 ---
 ## Variables
 
@@ -161,7 +162,8 @@ All API keys confirmed in CREDENTIALS_FILE. Merge Artifact 3 `mcpServers` block 
 ### Artifact 1
 
 - type: skill
-- destination: `~/.claude/skills/web-research.md`
+- source: `joeblackwaslike/agent-improvement`
+- skill-name: `web-research`
 
 ```markdown
 ---

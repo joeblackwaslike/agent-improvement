@@ -20,6 +20,8 @@ depends-on: []
 # depends-on: list of plan nums this plan depends on, e.g. ["0002", "0003"]
 related: []
 # related: list of related plan nums, e.g. ["0004"]
+agents: [claude-code]
+# agents: which agents receive artifacts at install time. Values: claude-code | codex | opencode | gemini-cli
 ---
 
 ## Variables

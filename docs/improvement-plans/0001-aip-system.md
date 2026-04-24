@@ -12,6 +12,7 @@ updated: 2026-04-24
 tags: [meta, aip, template, registry, commands, github]
 depends-on: []
 related: ["0002", "0003"]
+agents: [claude-code]
 ---
 
 ## Variables

@@ -1,11 +1,14 @@
 ---
-argument-hint: "<NNNN>"
+argument-hint: "<NNNN> [--agents agent1,agent2]"
 description: Implement an approved agent improvement plan by its 4-digit number
 ---
 
 # Implement Plan
 
 Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit plan number, e.g. `0001`)
+
+An optional `--agents` flag overrides the plan's `agents:` frontmatter for this install only:
+`/implement-plan 0003 --agents claude-code,gemini-cli`
 
 ## Steps
 
@@ -21,13 +24,14 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    "Plan {NNNN} has status '{status}' — only approved plans can be implemented.
    Update the frontmatter to `status: approved` when the plan is ready."
 
-   Parse the **Variables** section (between the frontmatter `---` and the first `##` heading
-   other than `## Variables`). Each non-comment line of the form `KEY: value` becomes a
-   substitution variable. When installing artifacts (step 5), replace every `${KEY}` in the
-   artifact content with its resolved value before writing.
+   **Parse Variables** (between the frontmatter `---` and the first `##` heading other than `## Variables`).
+   Each non-comment line of the form `KEY: value` becomes a substitution variable.
+   When installing artifacts (step 5), replace every `${KEY}` in artifact content with its resolved value before writing.
+   Variable values may use `~` for home directory expansion (e.g. `~/creds.zsh` → `/Users/{username}/creds.zsh`).
 
-   Variable values may reference shell environment variables using `~` for home directory
-   expansion (e.g. `~/creds.zsh` → `/Users/{username}/creds.zsh`). Expand them before use.
+   **Parse `agents:`** from frontmatter (list, default: `[claude-code]`).
+   If `--agents` was passed in `$ARGUMENTS`, that list overrides the frontmatter value for this run.
+   Only install artifacts to agents in the resolved list.
 
 3. **Verify requirements**
 
@@ -47,7 +51,7 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    If found, add the `status/in-progress` label and remove `status/draft` or `status/approved`:
 
    ```sh
-   gh issue edit {number} --add-label "status/in-progress" --remove-label "status/draft" --remove-label "status/approved"
+   gh issue edit {number} --repo joeblackwaslike/AIPs --add-label "status/in-progress" --remove-label "status/draft" --remove-label "status/approved"
    ```
 
    If no issue exists, create one:
@@ -63,9 +67,9 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
 
    Read the **Artifacts** section. For each artifact entry, in order:
 
-   a. Parse `type`, `destination`, and `content` (the fenced code block).
+   a. Parse `type`, `destination` (or `targets`), and `content` / `source`.
 
-   b. Resolve the destination path:
+   b. Resolve the destination path (for single-destination artifacts):
 
       - Paths starting with `~/` → expand to the user's home directory
       - Paths starting with `plugin:{name}/` → `~/.claude/plugins/{name}/`
@@ -73,13 +77,48 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
 
    c. Install by type:
 
-      - `claude-md-addition` — append the content block to the destination file
-        (check for duplicate heading first)
-      - `mcp-config` — merge the artifact's JSON into the destination file under the `mcpServers` key.
-        Command: `jq -s '.[0] * .[1]' {destination} <(echo '{artifact-json}') | sponge {destination}`
-        If `sponge` is unavailable: write to a temp file then `mv`. Never overwrite the full settings file.
-      - All other types — write the content as a new file at the destination.
+      **`skill`**
 
+      Two sub-cases based on whether `source:` is present:
+
+      - **`source: owner/repo`** — install via `@vercel-labs/skills` for each agent in the resolved agents list:
+
+        ```sh
+        npx skills add {source} --skill {skill-name} --agent {agent1} {agent2} ... -g -y
+        ```
+
+        This installs to each agent's global skills directory automatically.
+
+      - **No `source:` (embedded content block)** — write the content directly to `destination`.
+        For Claude Code, prefer the directory format: create `~/.claude/skills/{name}/SKILL.md`.
+        Create parent directories as needed.
+
+      **`mcp-config`**
+
+      Two sub-cases based on whether `targets:` list is present:
+
+      - **`targets:` list** — for each target whose `agent` value is in the resolved agents list:
+
+        ```sh
+        # Merge the content JSON under the specified key in the target's config file
+        jq -s '.[0] * {"mcpServers": .[1]}' {destination} <(echo '{content}') | sponge {destination}
+        # Or for a different key (e.g. "mcp" for OpenCode):
+        jq -s '.[0] * {"mcp": .[1]}' {destination} <(echo '{content}') | sponge {destination}
+        ```
+
+        If `sponge` is unavailable: write to a temp file then `mv`. Never overwrite the full config.
+        Create the destination file with `{}` if it does not exist.
+
+      - **No `targets:` (legacy single destination)** — merge under `mcpServers` key:
+
+        ```sh
+        jq -s '.[0] * {"mcpServers": .[1]}' {destination} <(echo '{content}') | sponge {destination}
+        ```
+
+      **`claude-md-addition`** — append the content block to the destination file.
+      Check for a duplicate heading first; skip if it already exists.
+
+      **All other types** — write the content as a new file at the destination.
       Create parent directories as needed (`mkdir -p`).
 
    d. Log each install: `✓ Installed {type} → {resolved-destination}`
@@ -122,3 +161,5 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
 - If a skill or command already exists at the destination, show a diff and ask the user before overwriting
 - Skills installed to `~/.claude/skills/` take effect in the next Claude Code session
 - Plugin artifacts (`plugin:{name}/...`) take effect after the plugin is reloaded
+- Skill directory format (`~/.claude/skills/{name}/SKILL.md`) is preferred over flat files for new skills
+- When `source:` is used for skills, `npx skills add` handles agent-specific path resolution automatically

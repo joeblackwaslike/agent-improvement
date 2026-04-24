@@ -2,7 +2,7 @@
 num: "0002"
 title: "Cross-Agent Compatibility Layer"
 area: tools
-status: approved
+status: in-progress
 priority: high
 effort: large
 impact: high
@@ -12,6 +12,7 @@ updated: 2026-04-24
 tags: [cross-agent, skills, mcp, commands, hooks, plugins, compatibility]
 depends-on: ["0001"]
 related: ["0003"]
+agents: [claude-code]
 ---
 
 ## Variables
