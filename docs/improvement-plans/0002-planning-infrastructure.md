@@ -1,5 +1,5 @@
 ---
-num: "0001"
+num: "0002"
 title: "Agent Improvement Planning Infrastructure"
 area: tools
 status: completed
@@ -10,7 +10,7 @@ created: 2026-04-23
 updated: 2026-04-24
 tags: [meta, planning, infrastructure, commands, github]
 depends-on: []
-related: ["0002"]
+related: ["0001", "0003"]
 ---
 
 ## Variables:
