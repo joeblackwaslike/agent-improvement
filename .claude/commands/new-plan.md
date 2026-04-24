@@ -22,6 +22,11 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
    - `updated`: same as `created`
    - Leave all other frontmatter fields at their template defaults for the user to fill in.
 
+   The `## Variables:` section (between the frontmatter and `## Summary`) holds plan-specific
+   named values that `implement-plan` substitutes into artifact content at install time.
+   Ask the user if there are any environment variables, file paths, or credentials the plan
+   needs — populate those as `KEY: value` entries. Leave the HTML comment placeholder if none.
+
 4. **Create the GitHub issue**
 
    Run:

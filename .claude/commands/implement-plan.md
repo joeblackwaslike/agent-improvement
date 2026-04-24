@@ -14,6 +14,14 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    "Plan {NNNN} has status '{status}' — only approved plans can be implemented.
    Update the frontmatter to `status: approved` when the plan is ready."
 
+   Parse the **Variables** section (between the frontmatter `---` and the first `##` heading
+   other than `## Variables:`). Each non-comment line of the form `KEY: value` becomes a
+   substitution variable. When installing artifacts (step 5), replace every `${KEY}` in the
+   artifact content with its resolved value before writing.
+
+   Variable values may reference shell environment variables using `~` for home directory
+   expansion (e.g. `~/creds.zsh` → `/Users/{username}/creds.zsh`). Expand them before use.
+
 3. **Verify requirements**
 
    Read the **Requirements** section. For each item under "Needs action":

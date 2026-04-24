@@ -20,6 +20,14 @@ related: []
 # related: list of related plan nums, e.g. ["0004"]
 ---
 
+## Variables:
+
+<!-- Plan-specific named values. Referenced in artifact content as ${VARIABLE_NAME}.
+     implement-plan substitutes these before writing each artifact.
+     Example: CREDENTIALS_FILE: ~/creds.zsh -->
+
+---
+
 <!-- DO-NOTS — delete this block before marking status: review
   - No vague metrics ("improve performance", "better results") — every metric must be falsifiable
   - No solution-first writing — problem and options come before decision
