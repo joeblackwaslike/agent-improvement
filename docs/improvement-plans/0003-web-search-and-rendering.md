@@ -2,7 +2,7 @@
 num: "0003"
 title: "Web Research: Expert Search Routing + Rendering Escalation"
 area: search
-status: approved
+status: completed
 priority: high
 effort: small
 impact: high
@@ -14,6 +14,7 @@ depends-on: []
 related: []
 agents: [claude-code, codex, opencode, gemini-cli]
 ---
+
 ## Variables
 
 CREDENTIALS_FILE: ~/creds.zsh
@@ -29,12 +30,10 @@ Claude automatically routes every web research and page-fetch task to the best a
 Two distinct silent failures degrade research quality without surfacing any error:
 
 1. **Search quality** — `webSearch` uses a generic search API. For niche technical queries (library internals, obscure bugs, RFCs, implementation patterns) results are shallow or off-target. Claude silently returns poor-quality citations. The user has no visibility into which tool was used or why.
-
    - Given: "pydantic-ai validator context kwarg type" → Expected: docs/source showing exact signature → Actual: generic blog posts or unrelated results
    - Given: "python 3.12 TypeVarTuple PEP 646 variance rules" → Expected: PEP or CPython source → Actual: introductory tutorial
 
 2. **Dynamic page rendering** — `webFetch` is a plain HTTP GET. SPAs (React, Next.js, Vue, Angular) respond with an unhydrated HTML skeleton — JavaScript-injected content never loads. Claude treats the skeleton as the page content with no error, no warning.
-
    - Given: fetch `nextjs.org/docs/app` → Expected: full doc content → Actual: `<div id="__next"></div>` (3 chars of body text)
    - Given: fetch `react.dev/reference/react/useState` → Expected: API reference → Actual: empty shell
 
@@ -42,30 +41,30 @@ Two distinct silent failures degrade research quality without surfacing any erro
 
 Search tools:
 
-| Option | Description | Pros | Cons | Best for |
-| --- | --- | --- | --- | --- |
-| Exa web_search | Semantic + keyword hybrid; 1B+ embeddings | Best niche technical; 94.9% SimpleQA accuracy; 2–3× faster than Tavily on complex retrieval | Retrieval only, no synthesis | Technical research, code patterns |
-| Exa get_code_context | Specialized code index | Token-succinct code excerpts; finds OSS usage examples | Code-only scope | Finding implementation examples in OSS |
-| Exa deep_researcher | Multi-step long-running research with synthesis | Exhaustive structured reports | Slow (p50 ~45–90s); expensive ($12–15/1K requests) | Deep multi-source investigations |
-| Exa company_research | Structured company data (70M+ companies) | Rich structured output | Narrow scope | Company and product research |
-| Context7 | 33K+ OSS library docs indexed | Cached; fast; version-specific queries | Periodic indexing; code snippets only, no prose | Known library/framework docs |
-| Ref | Broader docs + private repos + PDFs | Full content (prose + code); adaptive token use; private repo support | Slower than Context7 for cached libs | API reference, private docs, PDFs |
-| Perplexity Sonar | LLM-synthesized answers with citations | Synthesized answer directly; citation tokens free | Answer-focused, not raw retrieval; less source control | "What is the current state of X?" |
-| Perplexity Deep Research | Exhaustive multi-source synthesis | Most thorough synthesis available | High latency; expensive | Literature reviews, complex comparisons |
-| Tavily | AI-optimized RAG search with real-time coverage | Strong news coverage; structured for RAG; fast integration | Less semantic depth than Exa | News, announcements, time-sensitive queries |
-| Brave Search | Independent index, 30B+ pages | Privacy-first; no Big Tech dependency; $0.10/100 queries | Not optimized for agent use; smaller ecosystem | When independence from Google/Bing matters |
-| Built-in webSearch | Default tool | Zero config | Generic API; shallow niche results | Last resort only |
-| ~~Google CSE~~ | Programmable Search Engine | n/a | Deprecated — closed to new customers (sunset Jan 2027) | Do not use |
+| Option                   | Description                                     | Pros                                                                                        | Cons                                                   | Best for                                    |
+| ------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------- |
+| Exa web_search           | Semantic + keyword hybrid; 1B+ embeddings       | Best niche technical; 94.9% SimpleQA accuracy; 2–3× faster than Tavily on complex retrieval | Retrieval only, no synthesis                           | Technical research, code patterns           |
+| Exa get_code_context     | Specialized code index                          | Token-succinct code excerpts; finds OSS usage examples                                      | Code-only scope                                        | Finding implementation examples in OSS      |
+| Exa deep_researcher      | Multi-step long-running research with synthesis | Exhaustive structured reports                                                               | Slow (p50 ~45–90s); expensive ($12–15/1K requests)     | Deep multi-source investigations            |
+| Exa company_research     | Structured company data (70M+ companies)        | Rich structured output                                                                      | Narrow scope                                           | Company and product research                |
+| Context7                 | 33K+ OSS library docs indexed                   | Cached; fast; version-specific queries                                                      | Periodic indexing; code snippets only, no prose        | Known library/framework docs                |
+| Ref                      | Broader docs + private repos + PDFs             | Full content (prose + code); adaptive token use; private repo support                       | Slower than Context7 for cached libs                   | API reference, private docs, PDFs           |
+| Perplexity Sonar         | LLM-synthesized answers with citations          | Synthesized answer directly; citation tokens free                                           | Answer-focused, not raw retrieval; less source control | "What is the current state of X?"           |
+| Perplexity Deep Research | Exhaustive multi-source synthesis               | Most thorough synthesis available                                                           | High latency; expensive                                | Literature reviews, complex comparisons     |
+| Tavily                   | AI-optimized RAG search with real-time coverage | Strong news coverage; structured for RAG; fast integration                                  | Less semantic depth than Exa                           | News, announcements, time-sensitive queries |
+| Brave Search             | Independent index, 30B+ pages                   | Privacy-first; no Big Tech dependency; $0.10/100 queries                                    | Not optimized for agent use; smaller ecosystem         | When independence from Google/Bing matters  |
+| Built-in webSearch       | Default tool                                    | Zero config                                                                                 | Generic API; shallow niche results                     | Last resort only                            |
+| ~~Google CSE~~           | Programmable Search Engine                      | n/a                                                                                         | Deprecated — closed to new customers (sunset Jan 2027) | Do not use                                  |
 
 Rendering/fetch tools (lightest → heaviest):
 
-| Option | Description | Pros | Cons | Best for |
-| --- | --- | --- | --- | --- |
-| webFetch | Plain HTTP GET | Zero overhead; instant | Fails on SPAs | Static sites, REST APIs, RSS |
-| superpowers-chrome | `mcp__plugin_superpowers-chrome_chrome__use_browser` | Lower token cost than headless browser | Less capable than Playwright | First JS-rendering fallback |
-| Playwright MCP | Full headless Chromium browser | Handles any SPA; most capable | High token cost | When superpowers-chrome is insufficient |
-| Chrome DevTools MCP | Chrome CDP-based browser control | Similar capability to Playwright | High token cost | Alternative to Playwright MCP |
-| Firecrawl | Scrape + structured extraction + browser interaction | JSON schema extraction; handles login/form/pagination | Expensive (1–9 credits/page); no credit rollover | Structured data from specific known URLs only |
+| Option              | Description                                          | Pros                                                  | Cons                                             | Best for                                      |
+| ------------------- | ---------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ | --------------------------------------------- |
+| webFetch            | Plain HTTP GET                                       | Zero overhead; instant                                | Fails on SPAs                                    | Static sites, REST APIs, RSS                  |
+| superpowers-chrome  | `mcp__plugin_superpowers-chrome_chrome__use_browser` | Lower token cost than headless browser                | Less capable than Playwright                     | First JS-rendering fallback                   |
+| Playwright MCP      | Full headless Chromium browser                       | Handles any SPA; most capable                         | High token cost                                  | When superpowers-chrome is insufficient       |
+| Chrome DevTools MCP | Chrome CDP-based browser control                     | Similar capability to Playwright                      | High token cost                                  | Alternative to Playwright MCP                 |
+| Firecrawl           | Scrape + structured extraction + browser interaction | JSON schema extraction; handles login/form/pagination | Expensive (1–9 credits/page); no credit rollover | Structured data from specific known URLs only |
 
 ## Decision
 
@@ -117,16 +116,16 @@ Rejected: hook wrapper intercepting webFetch — harder to debug, doesn't improv
 
 **API keys — all confirmed present in CREDENTIALS_FILE:**
 
-| Provider | Env var | Dashboard |
-| --- | --- | --- |
-| Exa | `EXA_API_KEY` ✓ | [dashboard.exa.ai](https://dashboard.exa.ai/api-keys) |
-| Context7 | `CONTEXT7_API_KEY` ✓ | [context7.com/settings](https://context7.com/settings) |
-| Ref | `REF_API_KEY` ✓ | [ref.tools/settings](https://ref.tools/settings) |
-| Perplexity | `PERPLEXITY_API_KEY` ✓ | [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api) |
-| Tavily | `TAVILY_API_KEY` ✓ | [app.tavily.com](https://app.tavily.com/home) |
-| Brave Search | `BRAVE_API_KEY` ✓ | [api-dashboard.search.brave.com](https://api-dashboard.search.brave.com/app/subscriptions) |
-| Firecrawl | `FIRECRAWL_API_KEY` ✓ | [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys) |
-| DeepWiki | — no key required ✓ | — |
+| Provider     | Env var                | Dashboard                                                                                  |
+| ------------ | ---------------------- | ------------------------------------------------------------------------------------------ |
+| Exa          | `EXA_API_KEY` ✓        | [dashboard.exa.ai](https://dashboard.exa.ai/api-keys)                                      |
+| Context7     | `CONTEXT7_API_KEY` ✓   | [context7.com/settings](https://context7.com/settings)                                     |
+| Ref          | `REF_API_KEY` ✓        | [ref.tools/settings](https://ref.tools/settings)                                           |
+| Perplexity   | `PERPLEXITY_API_KEY` ✓ | [perplexity.ai/settings/api](https://www.perplexity.ai/settings/api)                       |
+| Tavily       | `TAVILY_API_KEY` ✓     | [app.tavily.com](https://app.tavily.com/home)                                              |
+| Brave Search | `BRAVE_API_KEY` ✓      | [api-dashboard.search.brave.com](https://api-dashboard.search.brave.com/app/subscriptions) |
+| Firecrawl    | `FIRECRAWL_API_KEY` ✓  | [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys)                       |
+| DeepWiki     | — no key required ✓    | —                                                                                          |
 
 **Needs action:**
 
@@ -261,7 +260,6 @@ Apply in order. Stop at the first step that returns sufficient content.
 - destination: `~/.claude/CLAUDE.md`
 
 ```markdown
-
 ## Web Research
 
 For all web search and page fetch tasks, use the `web-research` skill. It contains
@@ -375,13 +373,13 @@ tvly login --api-key "${TAVILY_API_KEY}"
 
 Start simple, escalate when needed:
 
-| Need | Command | When |
-|------|---------|------|
-| Find pages on a topic | `tvly search` | No specific URL yet |
-| Get a page's content | `tvly extract` | Have a URL |
-| Find URLs within a site | `tvly map` | Need to locate a subpage |
-| Bulk extract a site section | `tvly crawl` | Need many pages (e.g., all /docs/) |
-| Deep research with citations | `tvly research` | Need multi-source synthesis |
+| Need                         | Command         | When                               |
+| ---------------------------- | --------------- | ---------------------------------- |
+| Find pages on a topic        | `tvly search`   | No specific URL yet                |
+| Get a page's content         | `tvly extract`  | Have a URL                         |
+| Find URLs within a site      | `tvly map`      | Need to locate a subpage           |
+| Bulk extract a site section  | `tvly crawl`    | Need many pages (e.g., all /docs/) |
+| Deep research with citations | `tvly research` | Need multi-source synthesis        |
 
 ## Output
 
@@ -407,7 +405,7 @@ tvly crawl "https://docs.example.com" --output-dir ./docs/
 - destination: `~/.claude/skills/context7-find-docs.md`
 - source: <https://github.com/upstash/context7/blob/master/skills/find-docs/SKILL.md>
 
-````markdown
+```markdown
 ---
 name: find-docs
 description: >-
@@ -440,6 +438,7 @@ benchmark score. For version-specific queries use version IDs (e.g., `/vercel/ne
 Call `mcp__context7__query-docs` with `libraryId` and `query`.
 
 Writing good queries:
+
 - Good: `"How to set up authentication with JWT in Express.js"`
 - Bad: `"auth"`, `"hooks"` (too vague — returns generic results)
 
@@ -449,7 +448,7 @@ Use the user's full question as the query. Max 3 attempts per question.
 
 If quota error ("Monthly quota reached"): tell the user, suggest setting `CONTEXT7_API_KEY`,
 do not silently fall back to training data.
-````
+```
 
 ### Artifact 6
 
@@ -457,7 +456,7 @@ do not silently fall back to training data.
 - destination: `~/.claude/skills/context7-mcp.md`
 - source: <https://github.com/upstash/context7/blob/master/skills/context7-mcp/SKILL.md>
 
-````markdown
+```markdown
 ---
 name: context7-mcp
 description: >-
@@ -481,7 +480,7 @@ documentation instead of relying on training data.
 - Pass the user's full question as the query — improves result relevance significantly
 - For version mentions ("Next.js 15", "React 19"), prefer version-specific library IDs
 - When multiple matches exist, prefer official/primary packages over community forks
-````
+```
 
 ### Artifact 7
 
@@ -504,13 +503,13 @@ Understand the query, plan the work, dispatch the right Exa tool, compile and de
 
 ## Tool Selection
 
-| Query type | Tool |
-|------------|------|
-| General web research | `mcp__exa__web_search_exa` |
-| Code examples in OSS | `mcp__exa__get_code_context_exa` |
-| Company / product info | `mcp__exa__company_research_exa` |
+| Query type                 | Tool                                                                       |
+| -------------------------- | -------------------------------------------------------------------------- |
+| General web research       | `mcp__exa__web_search_exa`                                                 |
+| Code examples in OSS       | `mcp__exa__get_code_context_exa`                                           |
+| Company / product info     | `mcp__exa__company_research_exa`                                           |
 | Deep multi-source research | `mcp__exa__deep_researcher_start` + poll `mcp__exa__deep_researcher_check` |
-| LinkedIn / people research | `mcp__exa__linkedin_search_exa` |
+| LinkedIn / people research | `mcp__exa__linkedin_search_exa`                                            |
 
 ## Date Handling
 
@@ -576,13 +575,13 @@ curl -s "https://api.search.brave.com/res/v1/web/search" \
 
 ## Key Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `q` | Search query (max 400 chars) | required |
-| `count` | Results per page (1–20) | 10 |
-| `freshness` | `pd` (day), `pw` (week), `pm` (month) | none |
-| `country` | Country code, e.g. `US` | auto |
-| `safesearch` | `off`, `moderate`, `strict` | moderate |
+| Parameter    | Description                           | Default  |
+| ------------ | ------------------------------------- | -------- |
+| `q`          | Search query (max 400 chars)          | required |
+| `count`      | Results per page (1–20)               | 10       |
+| `freshness`  | `pd` (day), `pw` (week), `pm` (month) | none     |
+| `country`    | Country code, e.g. `US`               | auto     |
+| `safesearch` | `off`, `moderate`, `strict`           | moderate |
 
 ## When to Use
 
