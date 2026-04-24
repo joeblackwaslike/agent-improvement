@@ -41,7 +41,7 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    Find the GH issue for this plan:
 
    ```sh
-   gh issue list --repo joeblackwaslike/agent-improvement --search "[{NNNN}]" --json number,title
+   gh issue list --repo joeblackwaslike/AIPs --search "[{NNNN}]" --json number,title
    ```
 
    If found, add the `status/in-progress` label and remove `status/draft` or `status/approved`:
@@ -53,7 +53,7 @@ Implement an agent improvement plan by number. Argument: $ARGUMENTS (4-digit pla
    If no issue exists, create one:
 
    ```sh
-   gh issue create --repo joeblackwaslike/agent-improvement \
+   gh issue create --repo joeblackwaslike/AIPs \
      --title "[{NNNN}] {plan title}" \
      --body "Plan file: docs/improvement-plans/{NNNN}-{slug}.md" \
      --label "improvement-plan" --label "status/in-progress"

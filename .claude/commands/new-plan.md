@@ -42,7 +42,7 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
 
    ```sh
    gh issue create \
-     --repo joeblackwaslike/agent-improvement \
+     --repo joeblackwaslike/AIPs \
      --title "[{NNNN}] {title from frontmatter}" \
      --body "Plan file: docs/improvement-plans/{NNNN}-{slug}.md" \
      --label "improvement-plan" \
@@ -52,8 +52,8 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
    If the labels don't exist yet, create them first:
 
    ```sh
-   gh label create "improvement-plan" --color "0075ca" --repo joeblackwaslike/agent-improvement
-   gh label create "status/draft" --color "e4e669" --repo joeblackwaslike/agent-improvement
+   gh label create "improvement-plan" --color "0075ca" --repo joeblackwaslike/AIPs
+   gh label create "status/draft" --color "e4e669" --repo joeblackwaslike/AIPs
    ```
 
    The plan number `num` is the canonical link between the plan file and the GH issue — no URL
