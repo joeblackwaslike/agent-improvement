@@ -1,11 +1,10 @@
 ---
-argument-hint: "[title hint]"
 description: Create a new numbered agent improvement plan and open a GitHub issue
 ---
 
 # New Plan
 
-Create a new agent improvement plan. Argument (optional): $ARGUMENTS
+Create a new agent improvement plan. Argument (optional): $input
 
 ## Steps
 
@@ -17,7 +16,7 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
 
 2. **Determine the slug**
 
-   If `$ARGUMENTS` is provided, slugify it: lowercase, replace spaces/special chars with hyphens,
+   If `$input` is provided, slugify it: lowercase, replace spaces/special chars with hyphens,
    strip leading/trailing hyphens, truncate to 40 chars.
    If no argument is provided, ask the user for a short title and slugify it.
 
@@ -68,19 +67,16 @@ Create a new agent improvement plan. Argument (optional): $ARGUMENTS
 
    - **Summary**: ask for 1–2 sentences, outcome-first
    - **Problem**: ask for current behavior + 2–3 failure examples
-   - **Options**: remind that ≥2 credible alternatives are required; ask about tool preferences,
-     org constraints, model preferences as relevant
+   - **Options**: remind that ≥2 credible alternatives are required
    - **Decision**: fill in after Options is complete
    - Remaining sections: offer to help fill in each one
 
 6. **Remind**
 
    - Status stays `draft` until the user reviews and sets it to `review`, then `approved`
-   - Version starts at `0.1.0` (draft). Bump to `1.0.0` on first implementation. After that:
-     patch = fixes/clarifications, minor = new content/ACs, major = decision change
+   - Version starts at `0.1.0` (draft). Bump to `1.0.0` on first implementation.
    - Update the `updated` date and `version` together whenever the file changes
-   - GH issues are never closed — AIPs are living documents that evolve as the AI space changes
-   - Add area and priority labels to the GH issue once frontmatter is filled in:
+   - GH issues are never closed — AIPs are living documents
 
    ```sh
    gh issue edit {issue-number} --add-label "area/{area}" --add-label "priority/{priority}"

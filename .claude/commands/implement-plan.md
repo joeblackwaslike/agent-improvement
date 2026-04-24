@@ -95,25 +95,54 @@ An optional `--agents` flag overrides the plan's `agents:` frontmatter for this 
 
       **`mcp-config`**
 
+      Agent-to-config mapping (used for auto-detection and as a lookup reference):
+
+      | Agent | Config file | Key | Format |
+      | --- | --- | --- | --- |
+      | `claude-code` | `~/.claude/settings.json` | `mcpServers` | JSON |
+      | `gemini-cli` | `~/.gemini/settings.json` | `mcpServers` | JSON |
+      | `opencode` | `~/.config/opencode/opencode.json` | `mcp` | JSON |
+      | `codex` | `~/.codex/config.toml` | `mcp_servers` | TOML |
+
       Two sub-cases based on whether `targets:` list is present:
 
-      - **`targets:` list** — for each target whose `agent` value is in the resolved agents list:
+      - **`targets:` list** — explicit list of `{agent, path, key}` entries. For each entry
+        whose `agent` is in the resolved agents list, merge the artifact content under the
+        specified key in the target's config file using the format for that agent (below).
 
-        ```sh
-        # Merge the content JSON under the specified key in the target's config file
-        jq -s '.[0] * {"mcpServers": .[1]}' {destination} <(echo '{content}') | sponge {destination}
-        # Or for a different key (e.g. "mcp" for OpenCode):
-        jq -s '.[0] * {"mcp": .[1]}' {destination} <(echo '{content}') | sponge {destination}
-        ```
+      - **No `targets:` (auto-detect)** — build targets automatically from the resolved agents
+        list using the mapping above. The artifact `content` is treated as Claude Code `mcpServers`
+        JSON format and translated as needed per agent.
 
-        If `sponge` is unavailable: write to a temp file then `mv`. Never overwrite the full config.
-        Create the destination file with `{}` if it does not exist.
+      **JSON merge** (Claude Code, Gemini CLI, OpenCode):
 
-      - **No `targets:` (legacy single destination)** — merge under `mcpServers` key:
+      ```sh
+      # mcpServers key (claude-code, gemini-cli):
+      jq -s '.[0] * {"mcpServers": .[1]}' {path} <(echo '{content}') | sponge {path}
+      # mcp key (opencode):
+      jq -s '.[0] * {"mcp": .[1]}' {path} <(echo '{content}') | sponge {path}
+      ```
 
-        ```sh
-        jq -s '.[0] * {"mcpServers": .[1]}' {destination} <(echo '{content}') | sponge {destination}
-        ```
+      If `sponge` is unavailable: write to a temp file then `mv`. Never redirect output back
+      to the source file in a pipeline. Create the destination file with `{}` if it does not exist.
+
+      Note: OpenCode's per-server schema differs from Claude Code (`command` is an array,
+      uses `environment` instead of `env`, requires `"type": "local"`). When auto-detecting
+      targets and the schemas matter, provide per-agent content blocks via explicit `targets:`.
+      For simple stdio servers where minor schema differences are acceptable, the auto-detect
+      merge works as a best-effort install.
+
+      **TOML merge** (Codex):
+
+      ```sh
+      npx tsx src/lib/aip/toml-merge.ts ~/.codex/config.toml '{content}'
+      ```
+
+      `toml-merge.ts` converts the Claude Code `mcpServers` JSON format to Codex TOML
+      `[mcp_servers.*]` sections. Existing entries are skipped (never overwritten). Creates
+      the file if absent. HTTP servers: emits `url` + `bearer_token_env_var` from the
+      `Authorization` header's env-var reference. Stdio servers: emits `command`, `args`,
+      `env`, `enabled = true`.
 
       **`claude-md-addition`** — append the content block to the destination file.
       Check for a duplicate heading first; skip if it already exists.

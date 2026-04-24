@@ -2,11 +2,11 @@
 num: "0002"
 title: "Cross-Agent Compatibility Layer"
 area: tools
-status: in-progress
+status: completed
 priority: high
 effort: large
 impact: high
-version: "0.2.0"
+version: "1.0.0"
 created: 2026-04-24
 updated: 2026-04-24
 tags: [cross-agent, skills, mcp, commands, hooks, plugins, compatibility]
