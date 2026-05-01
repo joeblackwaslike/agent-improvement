@@ -107,6 +107,8 @@ No runtime artifacts — the deliverables are `template.md` and the two command 
 
 ## Rollback
 
+> IMPORTANT: During install the rollback section is copied into the auditlog so that future updates to the AIP don't break the rollback and so that updates to the AIP can be rolled out to a clean slate. <TODO implement>
+
 Trigger: rollback if `/new-plan` or `/implement-plan` are consistently unrecognized after two session restarts (indicates a CC version incompatibility with the frontmatter format).
 
 Procedure:
