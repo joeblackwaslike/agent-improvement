@@ -1,27 +1,49 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "bash ~/.claude/hooks/md-format.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Write|Edit"
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
   "permissions": {
+    "additionalDirectories": [
+      "/Users/joeblack/github/joeblackwaslike/agent-improvement/.claude",
+      "/Users/joeblack/github/joeblackwaslike/agent-improvement/docs"
+    ],
     "allow": [
       "mcp__exa__web_search_exa",
       "mcp__exa__crawling_exa",
       "mcp__github__search_code",
       "mcp__github__search_repositories"
-    ],
-    "additionalDirectories": [
-      "/Users/joeblack/github/joeblackwaslike/agent-improvement/.claude",
-      "/Users/joeblack/github/joeblackwaslike/agent-improvement/docs"
-    ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/md-format.sh"
-          }
-        ]
-      }
     ]
   }
 }
