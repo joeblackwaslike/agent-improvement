@@ -36,8 +36,8 @@
   },
   "permissions": {
     "additionalDirectories": [
-      "/Users/joeblack/github/joeblackwaslike/agent-improvement/.claude",
-      "/Users/joeblack/github/joeblackwaslike/agent-improvement/docs"
+      "/Users/joe/github/joeblackwaslike/agent-improvement/.claude",
+      "/Users/joe/github/joeblackwaslike/agent-improvement/docs"
     ],
     "allow": [
       "mcp__exa__web_search_exa",
