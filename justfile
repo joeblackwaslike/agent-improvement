@@ -43,8 +43,8 @@ link-skills:
 
 # Run tests
 test:
-    npx vitest run
+    bunx vitest run
 
 # Type-check without emitting
 typecheck:
-    npx tsc --noEmit
+    bunx tsc --noEmit
