@@ -4,4 +4,4 @@ set -euo pipefail
 REAL_SCRIPT="$(realpath "${BASH_SOURCE[0]}")"
 REPO_DIR="$(cd "$(dirname "$REAL_SCRIPT")/.." && pwd)"
 
-exec npx tsx "$REPO_DIR/src/hooks/md-format.ts"
+exec bun "$REPO_DIR/src/hooks/md-format.ts"

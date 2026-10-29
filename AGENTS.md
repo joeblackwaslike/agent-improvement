@@ -8,7 +8,7 @@ Centralized repo for Claude/agent workflow improvements. Tracks design decisions
 - `docs/superpowers/specs/` — brainstorm design docs
 - `docs/superpowers/plans/` — implementation plans
 - `docs/decisions/` — ADRs
-- `hooks/` — shell wrappers (thin, invoke `src/` via `tsx`)
+- `hooks/` — shell wrappers (thin, invoke `src/` via `bun`)
 - `src/hooks/` — TypeScript hook logic
 - `src/lib/` — shared utilities (Anthropic client, fs helpers)
 - `scripts/` — one-off maintenance scripts
@@ -42,5 +42,5 @@ If you find a real skill directory in `skills/` (not a symlink), move it to `age
 ## Conventions
 
 - Node/TypeScript + shell only (no Python)
-- `tsx` for zero-compile hook execution
+- `bun` for zero-compile hook execution (pnpm for dependencies; never npm/npx/yarn/tsx)
 - Supplement existing `~/.claude/` setup — do not replace or adopt existing hooks

@@ -1,8 +1,8 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env bun
 /**
  * Merges MCP server entries (Claude Code JSON format) into a Codex config.toml.
  *
- * Usage: tsx src/lib/aip/toml-merge.ts <toml-file> '<json-content>'
+ * Usage: bun src/lib/aip/toml-merge.ts <toml-file> '<json-content>'
  *
  * <json-content> must be a JSON object of server-name → config pairs — the value
  * of the `mcpServers` key in Claude Code's settings.json. Existing entries in the
@@ -67,7 +67,7 @@ function main(): void {
   const [, , tomlFile, jsonContent] = process.argv;
   if (!tomlFile || !jsonContent) {
     process.stderr.write(
-      "Usage: tsx src/lib/aip/toml-merge.ts <toml-file> '<json-content>'\n",
+      "Usage: bun src/lib/aip/toml-merge.ts <toml-file> '<json-content>'\n",
     );
     process.exit(1);
   }
